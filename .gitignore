@@ -2,8 +2,6 @@
 .vscode/*
 *build
 build/*
-*doc
-doc/*
 .idea/*
 *.o
 *.obj
