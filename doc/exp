@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Script de exportação automática para o projeto FS Helper
+# Script de exportação automática para projetos template-build
 # Local: doc/exp.sh
 # Saída: build/exp.txt
 
@@ -8,9 +8,30 @@
 PROJECT_ROOT="$(pwd)"
 echo "Diretório raiz do projeto: $PROJECT_ROOT"
 
+# CONFIGURAÇÃO DINÂMICA DO NOME DO PROJETO
+# Tenta detectar o nome do projeto automaticamente
+if [ -f ".project_config" ]; then
+    # Se existe arquivo de configuração, usa o nome definido
+    PROJECT_NAME=$(grep "PROJECT_NAME=" .project_config | cut -d'=' -f2)
+    echo "📁 Nome do projeto detectado: $PROJECT_NAME"
+elif [ -f "CMakeLists.txt" ]; then
+    # Tenta extrair do CMakeLists.txt
+    PROJECT_NAME=$(grep 'set(PROJECT_NAME' CMakeLists.txt | head -1 | sed -E 's/.*set\(PROJECT_NAME "([^"]+)".*/\1/')
+    if [ -n "$PROJECT_NAME" ]; then
+        echo "📁 Nome do projeto detectado: $PROJECT_NAME"
+    else
+        # Fallback: usa nome da pasta
+        PROJECT_NAME=$(basename "$PROJECT_ROOT")
+        echo "⚠️  Nome do projeto usando fallback: $PROJECT_NAME"
+    fi
+else
+    # Fallback final: nome da pasta
+    PROJECT_NAME=$(basename "$PROJECT_ROOT")
+    echo "⚠️  Nome do projeto usando fallback: $PROJECT_NAME"
+fi
+
 # Configurações
 OUTPUT_FILE="$PROJECT_ROOT/build/exp.txt"
-PROJECT_NAME="fs-helper"
 
 # CONFIGURAÇÕES DE EXCLUSÃO - EDITAR CONFORME NECESSÁRIO
 # Pastas que serão completamente ignoradas (separadas por espaço)
@@ -23,7 +44,7 @@ EXCLUIR_EXTENSOES=".tmp .log .bak"
 # Obter data atual
 DATA_ATUAL=$(date +"%d/%m/%Y %H:%M:%S")
 
-echo "=== EXPORTAÇÃO AUTOMÁTICA DO PROJETO ==="
+echo "=== EXPORTAÇÃO AUTOMÁTICA DO PROJETO: $PROJECT_NAME ==="
 echo ""
 
 # Verificar se a pasta build existe
@@ -56,6 +77,9 @@ for extensao in $EXCLUIR_EXTENSOES; do
     COMANDO_FIND="$COMANDO_FIND -not -name \"*$extensao\""
 done
 
+# Excluir o próprio script de exportação
+COMANDO_FIND="$COMANDO_FIND -not -path \"*/doc/exp.sh\""
+
 # Encontrar todos os arquivos automaticamente
 echo "🔍 Procurando arquivos no projeto..."
 ARQUIVOS_ENCONTRADOS=()
@@ -79,8 +103,9 @@ obter_categoria() {
     case "$pasta" in
         ".") echo "[RAIZ]" ;;
         "doc") echo "[PASTA] doc" ;;
-        "include") echo "[PASTA] include" ;;
+        "includes") echo "[PASTA] includes" ;;
         "src") echo "[PASTA] src" ;;
+        "data") echo "[PASTA] data" ;;
         *) echo "[PASTA] $pasta" ;;
     esac
 }
@@ -123,17 +148,29 @@ for CAMINHO in "${ARQUIVOS_ENCONTRADOS[@]}"; do
         
         # Ler e adicionar conteúdo do arquivo com suporte a UTF-8
         if [ -r "$CAMINHO" ]; then
-            # Usar iconv para garantir codificação UTF-8 ou cat com LANG definido
-            if command -v iconv >/dev/null 2>&1; then
-                # Tentar detectar a codificação e converter para UTF-8
-                if file -i "$CAMINHO" | grep -q "utf-8\|us-ascii"; then
-                    cat "$CAMINHO" >> "$OUTPUT_FILE"
-                else
-                    iconv -f "$(file -bi "$CAMINHO" | sed -e 's/.*[ ]charset=//')" -t UTF-8 "$CAMINHO" >> "$OUTPUT_FILE" 2>/dev/null || cat "$CAMINHO" >> "$OUTPUT_FILE"
-                fi
+            # Para arquivos de script com nome do projeto, substituir para mostrar o template
+            if [[ "$(basename "$CAMINHO")" == "$PROJECT_NAME" ]] && [[ -x "$CAMINHO" ]]; then
+                echo "#!/bin/bash" >> "$OUTPUT_FILE"
+                echo "# =============================================" >> "$OUTPUT_FILE"
+                echo "# CONFIGURAÇÃO DO PROJETO - EDITAR APÓS CLONAR" >> "$OUTPUT_FILE"
+                echo "PROJECT_NAME=\"$PROJECT_NAME\"" >> "$OUTPUT_FILE"
+                echo "# =============================================" >> "$OUTPUT_FILE"
+                echo "" >> "$OUTPUT_FILE"
+                # Pular as primeiras 4 linhas (cabeçalho) e mostrar o resto
+                tail -n +5 "$CAMINHO" >> "$OUTPUT_FILE"
             else
-                # Fallback: usar cat com locale definido para UTF-8
-                LANG=C.UTF-8 cat "$CAMINHO" >> "$OUTPUT_FILE" 2>/dev/null || cat "$CAMINHO" >> "$OUTPUT_FILE"
+                # Usar iconv para garantir codificação UTF-8 ou cat com LANG definido
+                if command -v iconv >/dev/null 2>&1; then
+                    # Tentar detectar a codificação e converter para UTF-8
+                    if file -i "$CAMINHO" | grep -q "utf-8\|us-ascii"; then
+                        cat "$CAMINHO" >> "$OUTPUT_FILE"
+                    else
+                        iconv -f "$(file -bi "$CAMINHO" | sed -e 's/.*[ ]charset=//')" -t UTF-8 "$CAMINHO" >> "$OUTPUT_FILE" 2>/dev/null || cat "$CAMINHO" >> "$OUTPUT_FILE"
+                    fi
+                else
+                    # Fallback: usar cat com locale definido para UTF-8
+                    LANG=C.UTF-8 cat "$CAMINHO" >> "$OUTPUT_FILE" 2>/dev/null || cat "$CAMINHO" >> "$OUTPUT_FILE"
+                fi
             fi
         else
             echo "❌ ERRO: Não foi possível ler o arquivo" >> "$OUTPUT_FILE"
@@ -149,5 +186,6 @@ echo "Total de arquivos processados: $TOTAL_ARQUIVOS" >> "$OUTPUT_FILE"
 
 echo ""
 echo "✅ EXPORTAÇÃO CONCLUÍDA!"
-echo "Total de arquivos exportados: $TOTAL_ARQUIVOS"
-echo "Arquivo gerado: $OUTPUT_FILE"
+echo "📁 Projeto: $PROJECT_NAME"
+echo "📊 Total de arquivos exportados: $TOTAL_ARQUIVOS"
+echo "📄 Arquivo gerado: $OUTPUT_FILE"
