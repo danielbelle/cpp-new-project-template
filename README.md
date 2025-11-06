@@ -19,10 +19,22 @@ multi-plataforma.
 # Clone criando nova pasta
 git clone <este-template> meu-projeto
 cd meu-projeto
-# ✅ Configuração automática já aconteceu!
 
 # Ou clone na pasta atual
 mkdir meu-projeto && cd meu-projeto
 git clone <este-template> .
-# ✅ Configuração automática já aconteceu!
+
+# Permissões de acesso:
+chmod +x ./setup_template.sh
+chmod +x ./run
+chmod +x ./doc/exp
+
+# Executar template
+./setup_template.sh
+
+# Executar projeto
+./run
+
+# Exportar projeto
+./doc/exp
 ```

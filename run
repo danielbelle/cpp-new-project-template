@@ -30,7 +30,7 @@ fi
 
 # Criar pasta build
 echo "Criando novo build..."
-    mkdir -p build
+mkdir -p build
 cd build
 
 # Forçar MinGW no Windows
@@ -57,7 +57,7 @@ if [ $? -eq 0 ]; then
         echo "=== BUILD SUCESSO ==="
         cd ..
         
-        # Encontrar o executável
+        # Encontrar o executável (usa PROJECT_NAME variável)
         if [ -f "build/${PROJECT_NAME}.exe" ]; then
             echo "Executando programa..."
             ./build/${PROJECT_NAME}.exe

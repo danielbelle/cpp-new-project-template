@@ -32,16 +32,16 @@ if [ -f "CMakeLists.txt" ]; then
     echo "✅ CMakeLists.txt configurado"
 fi
 
-# Atualizar e renomear script run
+# Atualizar script run (APENAS variável interna - NÃO renomear arquivo)
 if [ -f "run" ]; then
     # Atualizar variável no arquivo
     sed -i.tmp -E "s/(PROJECT_NAME=\")[^\"]+(\")/PROJECT_NAME=\"${SANITIZED_NAME}\"/" run
     rm -f run.tmp 2>/dev/null
+    echo "✅ Script 'run' configurado para projeto: ${SANITIZED_NAME}"
     
-    # Renomear arquivo
-    mv "run" "${SANITIZED_NAME}"
-    chmod +x "${SANITIZED_NAME}"
-    echo "✅ Script de build renomeado para: ${SANITIZED_NAME}"
+    # Manter permissões de execução
+    chmod +x "run"
+    echo "✅ Permissões de execução mantidas para 'run'"
 fi
 
 # Criar arquivo de identificação
@@ -62,6 +62,6 @@ rm -f "$0"
 echo ""
 echo "🎉 CONFIGURAÇÃO AUTOMÁTICA CONCLUÍDA!"
 echo "📋 Próximos passos:"
-echo "   Execute './${SANITIZED_NAME}' para compilar e rodar o projeto"
+echo "   Execute './run' para compilar e rodar o projeto"
 echo "   Ou use: 'cmake -B build && cmake --build build'"
 echo ""
