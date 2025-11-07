@@ -1,7 +1,7 @@
 # 🚀 Template Build - Template para Projetos C++
 
 Um template automatizado para projetos C++ com configuração UTF-8 e
-multi-plataforma.
+multiplataforma.
 
 ## ✨ Funcionalidades
 
