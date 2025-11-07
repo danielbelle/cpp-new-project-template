@@ -21,13 +21,33 @@ if [ "$SANITIZED_NAME" != "$PROJECT_NAME" ]; then
     echo "🔧 Nome sanitizado: $SANITIZED_NAME"
 fi
 
+# Perguntar se deseja cadastrar descrição do projeto
+PROJECT_DESCRIPTION="Template projeto em C++"
+echo ""
+read -p "📝 Deseja cadastrar uma descrição para o projeto? (s/N): " cadastrar_desc
+
+if [[ $cadastrar_desc =~ [sS] ]]; then
+    read -p "Digite a descrição do projeto: " nova_descricao
+    if [ -n "$nova_descricao" ]; then
+        PROJECT_DESCRIPTION="$nova_descricao"
+        echo "✅ Descrição definida: $PROJECT_DESCRIPTION"
+    else
+        echo "⚠️  Descrição vazia, mantendo padrão"
+    fi
+else
+    echo "ℹ️  Mantendo descrição padrão"
+fi
+
 echo "🔄 Atualizando arquivos de configuração..."
 
-# Atualizar CMakeLists.txt
+# Atualizar CMakeLists.txt - APENAS a linha set(PROJECT_NAME)
 if [ -f "CMakeLists.txt" ]; then
-    sed -i.tmp -E "s/(set\\(PROJECT_NAME \")[^\"]+(\"\\))/\1${SANITIZED_NAME}\2/" CMakeLists.txt
-    sed -i.tmp -E "s/(project\\()[^)]+(\\))/\1${SANITIZED_NAME}\2/" CMakeLists.txt
-    sed -i.tmp -E "s/(add_executable\\()[^ ]+/\1${SANITIZED_NAME}/" CMakeLists.txt
+    # Atualizar apenas a linha específica do PROJECT_NAME
+    sed -i.tmp -E "s/^(set\\(PROJECT_NAME \")[^\"]+(\"\\))$/set(PROJECT_NAME \"${SANITIZED_NAME}\")/" CMakeLists.txt
+    
+    # Atualizar a descrição do projeto
+    sed -i.tmp -E "s/^(set\\(PROJECT_DESCRIPTION \")[^\"]+(\"\\))$/set(PROJECT_DESCRIPTION \"${PROJECT_DESCRIPTION}\")/" CMakeLists.txt
+    
     rm -f CMakeLists.txt.tmp 2>/dev/null
     echo "✅ CMakeLists.txt configurado"
 fi
