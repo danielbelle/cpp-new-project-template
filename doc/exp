@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Script de exportação automática para projetos template-build
-# Local: doc/exp.sh
+# Local: doc/exp
 # Saída: build/exp.txt
 
 # Obter diretório raiz do projeto (onde o script foi chamado)
@@ -78,7 +78,7 @@ for extensao in $EXCLUIR_EXTENSOES; do
 done
 
 # Excluir o próprio script de exportação
-COMANDO_FIND="$COMANDO_FIND -not -path \"*/doc/exp.sh\""
+COMANDO_FIND="$COMANDO_FIND -not -path \"*/doc/exp\""
 
 # Encontrar todos os arquivos automaticamente
 echo "🔍 Procurando arquivos no projeto..."

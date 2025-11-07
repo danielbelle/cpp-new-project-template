@@ -1,0 +1,64 @@
+#!/bin/bash
+# Script de configuração manual para template Git
+# Execute manualmente após o clone: ./setup_template
+
+echo ""
+echo "=== 🚀 CONFIGURANDO TEMPLATE AUTOMATICAMENTE ==="
+echo ""
+
+# Obter nome da pasta atual (projeto)
+PROJECT_NAME=$(basename "$PWD")
+echo "📁 Nome da pasta detectado: $PROJECT_NAME"
+
+# Função para sanitizar nome
+sanitize_name() {
+    echo "$1" | sed -E 's/[[:space:]_]+/-/g' | sed -E 's/[^a-zA-Z0-9-]//g' | tr '[:upper:]' '[:lower:]' | sed -E 's/--+/-/g' | sed -E 's/^-//' | sed -E 's/-$//'
+}
+
+SANITIZED_NAME=$(sanitize_name "$PROJECT_NAME")
+
+if [ "$SANITIZED_NAME" != "$PROJECT_NAME" ]; then
+    echo "🔧 Nome sanitizado: $SANITIZED_NAME"
+fi
+
+echo "🔄 Atualizando arquivos de configuração..."
+
+# Atualizar CMakeLists.txt
+if [ -f "CMakeLists.txt" ]; then
+    sed -i.tmp -E "s/(set\\(PROJECT_NAME \")[^\"]+(\"\\))/\1${SANITIZED_NAME}\2/" CMakeLists.txt
+    sed -i.tmp -E "s/(project\\()[^)]+(\\))/\1${SANITIZED_NAME}\2/" CMakeLists.txt
+    sed -i.tmp -E "s/(add_executable\\()[^ ]+/\1${SANITIZED_NAME}/" CMakeLists.txt
+    rm -f CMakeLists.txt.tmp 2>/dev/null
+    echo "✅ CMakeLists.txt configurado"
+fi
+
+# Atualizar script run
+if [ -f "run" ]; then
+    sed -i.tmp -E "s/(PROJECT_NAME=\")[^\"]+(\")/\1${SANITIZED_NAME}\2/" run
+    rm -f run.tmp 2>/dev/null
+    echo "✅ Script 'run' configurado para projeto: ${SANITIZED_NAME}"
+    chmod +x "run"
+fi
+
+# 🔥 REMOVER CONEXÃO COM REPOSITÓRIO TEMPLATE (ÚLTIMO PASSO)
+echo ""
+echo "🔄 Desanexando do repositório template..."
+rm -rf .git
+git init
+echo "✅ Novo repositório Git inicializado"
+
+# Remover este script após execução
+rm -f "$0"
+
+echo ""
+echo "🎉 CONFIGURAÇÃO AUTOMÁTICA CONCLUÍDA!"
+echo "📋 Próximos passos:"
+echo "   1. Configure o repositório remoto:"
+echo "      git remote add origin <seu-novo-repositorio-url>"
+echo "   2. Primeiro commit:"
+echo "      git add . && git commit -m 'Initial commit from template'"
+echo "   3. Push inicial:"
+echo "      git push -u origin main"
+echo "   4. Teste o projeto:"
+echo "      ./run"
+echo ""

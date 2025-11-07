@@ -25,12 +25,12 @@ mkdir meu-projeto && cd meu-projeto
 git clone <este-template> .
 
 # Permissões de acesso:
-chmod +x ./setup_template.sh
+chmod +x ./setup_template
 chmod +x ./run
 chmod +x ./doc/exp
 
 # Executar template
-./setup_template.sh
+./setup_template
 
 # Executar projeto
 ./run
