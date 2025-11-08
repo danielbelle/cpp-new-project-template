@@ -17,12 +17,12 @@ multiplataforma.
 
 ```bash
 # Clone criando nova pasta
-git clone <este-template> meu-projeto
+git clone https://github.com/danielbelle/cpp-new-project-template.git meu-projeto
 cd meu-projeto
 
 # Ou clone na pasta atual
 mkdir meu-projeto && cd meu-projeto
-git clone <este-template> .
+git clone https://github.com/danielbelle/cpp-new-project-template.git .
 
 # Permissões de acesso:
 chmod +x ./setup_template
